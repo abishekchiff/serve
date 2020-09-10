@@ -13,6 +13,7 @@ import torch
 from torchtext.data.utils import get_tokenizer
 from .base_handler import BaseHandler
 from .contractions import CONTRACTION_MAP
+from captum.attr import LayerIntegratedGradients, TokenReferenceBase, visualization
 
 CLEANUP_REGEX = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 CONTRACTIONS_PATTERN = re.compile(
@@ -39,6 +40,7 @@ class TextHandler(BaseHandler, ABC):
             self.source_vocab = torch.load(source_vocab)
         else:
             self.source_vocab = torch.load(self.get_source_vocab_path(ctx))
+        self.lig = LayerIntegratedGradients(self.model, self.model.embedding)
         self.initialized = True
 
     def get_source_vocab_path(self, ctx):
