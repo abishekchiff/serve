@@ -38,17 +38,18 @@ class TextClassifier(TextHandler):
         print("Using KFServing text classifier")
         #Processing only the first input, not handling batch inference
         text = None
-        inp = data[0]
+        inp = data
         if isinstance(inp, dict):
             name = inp.get("name")
             if name == "context":
                 text = inp.get("data")
                 print("Inside KFServing preprocess, ",text)
+            target = inp.get("target")
                 
         else:
             text = inp
         #text = text.decode('utf-8')
-
+        print("text classifier : text type",type(text))
         text = self._remove_html_tags(text)
         text = text.lower()
         text = self._expand_contractions(text)
@@ -66,36 +67,39 @@ class TextClassifier(TextHandler):
         return text
 
     def inference(self, data, *args, **kwargs):
-        offsets = torch.as_tensor([0], device=self.device)
+        print("inference data",data)
+        offsets = None
+        #offsets = torch.as_tensor([0], device=self.device)
         return super().inference(data, offsets)
 
     def postprocess(self, data):
         print("inference shape",data.shape)
         data = F.softmax(data)
         data = data.tolist()
-        return  map_class_to_label(data, self.mapping)
+        print("postprocess data :", data)
+        return  map_class_to_label([data], self.mapping)[0]
 
 
-    def get_insights(self, text):
+    def get_insights(self, text_tensor, text, target):
         token_reference = TokenReferenceBase()
-        print("input_text shape", len(self.input_text))
-
+        print("input_text shape", len(text_tensor.shape))
+        print("get_insights target",target)
         offsets = torch.tensor([0])
 
-        text_tokenized = torch.as_tensor(
-            [self.source_vocab[tok]
-            for tok in self.input_text
-            ],
-            device=self.device
-        )
-        print("text tokenized shape", text_tokenized.shape)
-        reference_indices = token_reference.generate_reference(text_tokenized.shape[0], device=self.device).squeeze(0)
+        # text_tensor = torch.as_tensor(
+        #     [self.source_vocab[tok]
+        #     for tok in self.input_text_tensor
+        #     ],
+        #     device=self.device
+        # )
+        print("text_tensor tokenized shape", text_tensor.shape)
+        reference_indices = token_reference.generate_reference(text_tensor.shape[0], device=self.device).squeeze(0)
         print("reference indices ", reference_indices.shape, reference_indices)
         
 
-        all_tokens = self.get_word_token(self.input_text, self.tokenizer)
-        attributions = self.lig.attribute(text_tokenized, reference_indices, \
-                                             additional_forward_args=(offsets), return_convergence_delta=False,target=0)
+        all_tokens = self.get_word_token(text)
+        attributions = self.lig.attribute(text_tensor, reference_indices, \
+                                             additional_forward_args=(offsets), return_convergence_delta=False,target=target)
         
         print("attributions shape",attributions.shape)
         attributions_sum = self.summarize_attributions(attributions)
@@ -103,6 +107,6 @@ class TextClassifier(TextHandler):
         
         response["importances"] = attributions_sum.tolist()
         response["words"] = all_tokens
-        return [response]
+        return response
 
     

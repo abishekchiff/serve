@@ -73,14 +73,21 @@ class TextHandler(BaseHandler, ABC):
     def _tokenize(self, text):
         return self.tokenizer(text)
 
-    def get_word_token(self,input_ids, tokenizer):
+    def get_word_token(self,text):
         """
-        constructs word tokens from token id
+        constructs word tokens from text
         """
         #indices = input_ids[0].detach().tolist()
         #tokens = [ tok for tok in ngrams_iterator(input_ids, self.ngrams)]
         # Remove unicode space character from BPE Tokeniser
-        tokens = [token.replace("Ġ", "") for token in input_ids]
+        text = self._remove_html_tags(text)
+        text = text.lower()
+        text = self._expand_contractions(text)
+        text = self._remove_accented_characters(text)
+        text = self._remove_punctuation(text)
+        text = self._tokenize(text)
+
+        tokens = [token.replace("Ġ", "") for token in text]
         return tokens
     def summarize_attributions(self, attributions):
         """

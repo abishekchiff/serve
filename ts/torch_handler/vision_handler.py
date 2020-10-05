@@ -36,6 +36,8 @@ class VisionHandler(BaseHandler, ABC):
 
         return torch.stack(images)
 
-    def get_insights(self, data):
+    def get_insights(self, data, raw_data, target):
         print("input shape",data.shape)
-        return self.ig.attribute(data, target=self.target, n_steps=15).tolist()
+        print(f"get insights unsqueezed data {torch.unsqueeze(data,0).shape}")
+        return self.ig.attribute(torch.unsqueeze(data,0), target=target, n_steps=15).tolist()
+        

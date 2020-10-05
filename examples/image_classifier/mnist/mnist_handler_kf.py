@@ -6,6 +6,7 @@ from torchvision import transforms
 from ts.torch_handler.image_classifier import ImageClassifier
 import base64
 import torch
+import logging
 
 class MNISTDigitClassifier(ImageClassifier):
     """
@@ -23,19 +24,25 @@ class MNISTDigitClassifier(ImageClassifier):
     def preprocess(self, data):
         images = []
 
-        for row in data:
+        # for row in data:
             # Compat layer: normally the envelope should just return the data
             # directly, but older versions of Torchserve didn't have envelope.
-            if isinstance(row, dict):
-                image = row.get("data") or row.get("body") or row
-            else:
-                image = row
-            print("Mnist image code", image)
-            image = torch.FloatTensor(image)
-            print("Mnist image code tensor", image)
-            images.append(image)
+        if isinstance(data, dict):
+            image = data.get("data") or data.get("body")
+        else:
+            image = data
+        print("Mnist image code", image)
+        image = torch.FloatTensor(image)
+        print("Mnist image code tensor", image)
+        #images.append(image)
 
-        return torch.stack(images)
+        return torch.Tensor(image)
 
     def postprocess(self, data):
-        return data.argmax(1).tolist()
+        logging.info(f"mnist kf postprocess: {data}")
+        return data.argmax(0).tolist()
+    
+    def get_insights(self, data, raw_data, target):
+        print("input shape",data.shape)
+        print(f"get insights unsqueezed data {torch.unsqueeze(data,0).shape}")
+        return self.ig.attribute(torch.unsqueeze(data,0), target=target, n_steps=15)

@@ -19,6 +19,7 @@ class TSModelRepository(KFModelRepository):
         if name in self.models:
             response = model.load_model()
             if response:
+                model.load()
                 self.update(model)
         else:
             raise KeyError(f"model {name} does not exist")

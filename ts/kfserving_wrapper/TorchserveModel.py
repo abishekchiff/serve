@@ -2,11 +2,12 @@ import kfserving
 import logging
 logging.basicConfig(level=kfserving.constants.KFSERVING_LOGLEVEL)
 import tornado.web
+import tornado
 import os
 import json
 from typing import Dict
 import requests
-REGISTER_URL_FORMAT = "{0}/models?initial_workers=1&url={1}"
+REGISTER_URL_FORMAT = "{0}/models?initial_workers=2&url={1}"
 UNREGISTER_URL_FORMAT = "{0}/models/{1}"
 
 PREDICTOR_URL_FORMAT = "http://{0}/v1/models/{1}:predict"
@@ -25,15 +26,15 @@ class TorchserveModel(kfserving.KFModel):
         self.management_address = management_address
         self.model_dir = model_dir
         
-        logging.info("kfmodel Predict URL set to %s", self.predictor_host)
+        logging.info("TS Predict URL set to %s", self.predictor_host)
         self.explainer_host = self.predictor_host
-        logging.info("kfmodel Explain URL set to %s", self.explainer_host)
+        logging.info("TS Explain URL set to %s", self.explainer_host)
 
     async def predict(self, request: Dict) -> Dict:
         if not self.predictor_host:
             raise NotImplementedError
         print("kfmodel predict request is ",json.dumps(request))
-        print("PREDICTOR_HOST :", self.predictor_host) 
+        logging.info(f"PREDICTOR_HOST : {self.predictor_host}") 
         headers = {'Content-Type': 'application/json; charset=UTF-8'}
         response = await self._http_client.fetch(
             PREDICTOR_URL_FORMAT.format(self.predictor_host, self.name),
@@ -53,7 +54,7 @@ class TorchserveModel(kfserving.KFModel):
         if self.explainer_host is None:
             raise NotImplementedError
         print("kfmodel explain request is ",json.dumps(request)) 
-        print("EXPLAINER_HOST :", self.explainer_host) 
+        logging.info(f"EXPLAINER_HOST : {self.explainer_host}") 
         headers = {'Content-Type': 'application/json; charset=UTF-8'}  
         response = await self._http_client.fetch(
             EXPLAINER_URL_FORMAT.format(self.explainer_host, self.name),
@@ -72,7 +73,7 @@ class TorchserveModel(kfserving.KFModel):
         if not self.management_address:
             raise NotImplementedError
         model_path = os.path.join(self.model_dir, self.name)
-        print("kfmodel loading model ",self.name)
+        logging.info(f"TSMODEL loading model {self.name}")
         # response = self._http_client.fetch(
         #     REGISTER_URL_FORMAT.format(self.management_address, model_path),
         #     method='POST',
@@ -115,6 +116,7 @@ class TorchserveModel(kfserving.KFModel):
         # else :
         #     self.ready = False
         # return self.ready
+        logging.info(f"Inside TSModel unload {UNREGISTER_URL_FORMAT.format(self.management_address, self.name)}")
 
         response = requests.delete(	        
             UNREGISTER_URL_FORMAT.format(self.management_address, self.name))	  

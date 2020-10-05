@@ -26,7 +26,7 @@ class BaseHandler(abc.ABC):
         self.manifest = None
         self.map_location = None
         self.explain = False
-        self.target = 0
+        self.batch_size = 1
 
     def initialize(self, context):
         """First try to load torchscript else load eager mode state_dict based model"""
@@ -38,6 +38,7 @@ class BaseHandler(abc.ABC):
         self.manifest = context.manifest
 
         model_dir = properties.get("model_dir")
+        self.batch_size = properties.get("batch_size")
         serialized_file = self.manifest['model']['serializedFile']
         model_pt_path = os.path.join(model_dir, serialized_file)
 
@@ -114,8 +115,38 @@ class BaseHandler(abc.ABC):
         """
 
         return data.tolist()
+    # def handle(self, data, context, explain = False):
+    #     """
+    #     Entry point for default handler
+    #     """
 
-    def handle(self, data, context, explain = False):
+    #     # It can be used for pre or post processing if needed as additional request
+    #     # information is available in context
+    #     self.context = context
+    #     output_explain  = None
+    #     #explain from header 
+
+    #     data = self.preprocess(data)
+    #     output = self.inference(data)
+    #     output_explain = self.explain_handle(context, data)
+    #     output = self.postprocess(output)
+    #     return output, output_explain
+
+    # def handle(self, data, context):
+    #     """
+    #     Entry point for default handler
+    #     """
+    #     self.context = context
+
+    #     data_list = process_batches(data,self.preprocess)
+
+    #     data_list = self.inference(data_list)
+        
+    #     data_list = process_batches(data,self.postprocess)
+        
+    #     return data_list
+
+    def handle(self, data, context):
         """
         Entry point for default handler
         """
@@ -123,23 +154,97 @@ class BaseHandler(abc.ABC):
         # It can be used for pre or post processing if needed as additional request
         # information is available in context
         self.context = context
-        output_explain  = None
-        #explain from header 
-
-        data = self.preprocess(data)
-        output = self.inference(data)
-        output_explain = self.explain_handle(context, data)
-        output = self.postprocess(output)
-        return output, output_explain
-
-    def explain_handle(self,context, data):
-        if self.context and self.context.get_request_header(0,"explain"):
+        self.initialize(self.context)
+  
+        #preproces
+        print("Base handler data length :", len(data))
+        data_list = self.process_batches(data,self.preprocess)
+        #inference
+        data_list_tensor = torch.stack(data_list,0)
+        inf_list = self.inference(data_list_tensor)
+        print("base handler inference output",inf_list) 
+        #postprocess
+        output_list = self.process_batches(inf_list,self.postprocess)
+       
+        #explain if explain is set true in context
+        output_explain_list  = self.explain_handle(data_list, data)
+       
+        #Out postprocess
+        output = {}
+        output["predictions"] = output_list
+        output["explanations"] = output_explain_list
+        #output_explain = process_batches(data_list, self.explain_handle(context, data)
+        return [output]
+    
+    def explain_handle(self, data_list, raw_data):
+        
+        output_explain_list  = None
+        if  self.context and self.context.get_request_header(0,"explain"):
             if self.context.get_request_header(0,"explain") == "True":
                 self.explain = True
                 print("IsExplain",self.explain)
-                print("The explainations are being calculated", data)
-                output_explain = self.get_insights(data)
-                return output_explain
+                print("The explainations are being calculated", data_list)
+
+                targets = []
+                inputs = []
+                for r_d in raw_data:
+                    if isinstance(r_d, dict):
+                        targets.append( r_d.get("target"))
+                        inputs.append(r_d.get("data"))
+
+                print("The targets in explain_handler", targets)
+                output_explain_list = self.process_batches((data_list, inputs, targets), self.get_insights, explain = True)
+            
+        return output_explain_list
+
+    def process_batches(self, data, func, explain = False):
+        
+        data_list = []
+        print("process batches :", data)
+        if self.batch_size == 1:
+            if not explain:
+                func_output = func(data[0])
+            elif explain:
+                data_list, data, targets = data
+                func_output = func(data_list[0], data[0], targets[0])     
+            data_list.append(func_output)
+
+
+        elif isinstance(data, (list,torch.Tensor)):
+            print(f"Process_batches get executed for {len(data)} times")
+            for d in data:
+                func_output = func(d)
+                data_list.append(func_output)
+        
+        elif explain:
+            #dat, targets = data
+            for tensor_data, datas, targets  in zip(*data):
+                func_output = func(tensor_data, datas, targets)
+                data_list.append(func_output)
+
+        print("process batches output :", data_list)
+        return data_list
+
+# def is_explain(context):
+#     if  context and context.get_request_header(0,"explain"):
+#         if context.get_request_header(0,"explain") == "True":
+#                 return True
+#     return False
+
+# def handle(self, data, context):
+#     """
+#     Entry point for default handler
+#     """
+#     self.context = context
+
+#     data_list = process_batches(data,self.preprocess)
+
+#     data_list = self.inference(data_list)
+    
+#     data_list = process_batches(data,self.postprocess)
+    
+#     return data_list
+  
                 
   
 

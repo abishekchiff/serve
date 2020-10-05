@@ -22,8 +22,10 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         properties = ctx.system_properties
         model_dir = properties.get("model_dir")
         serialized_file = self.manifest['model']['serializedFile']
+        self.batch_size = properties.get("batch_size")
         model_pt_path = os.path.join(model_dir, serialized_file)
         self.device = torch.device("cuda:" + str(properties.get("gpu_id")) if torch.cuda.is_available() else "cpu")
+        
         #read configs for the mode, model_name, etc. from setup_config.json
         setup_config_path = os.path.join(model_dir, "setup_config.json")
         if os.path.isfile(setup_config_path):
