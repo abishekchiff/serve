@@ -35,7 +35,7 @@ class TextClassifier(TextHandler):
         
         # Compat layer: normally the envelope should just return the data
         # directly, but older versions of Torchserve didn't have envelope.
-        print("Using KFServing text classifier")
+        print("Using KFServing text classifier - data",data)
         #Processing only the first input, not handling batch inference
         text = None
         inp = data

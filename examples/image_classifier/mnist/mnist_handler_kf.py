@@ -41,8 +41,4 @@ class MNISTDigitClassifier(ImageClassifier):
     def postprocess(self, data):
         logging.info(f"mnist kf postprocess: {data}")
         return data.argmax(0).tolist()
-    
-    def get_insights(self, data, raw_data, target):
-        print("input shape",data.shape)
-        print(f"get insights unsqueezed data {torch.unsqueeze(data,0).shape}")
-        return self.ig.attribute(torch.unsqueeze(data,0), target=target, n_steps=15)
+        

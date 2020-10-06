@@ -154,7 +154,8 @@ class BaseHandler(abc.ABC):
         # It can be used for pre or post processing if needed as additional request
         # information is available in context
         self.context = context
-        self.initialize(self.context)
+        if not self.initialized:
+            self.initialize(self.context)
   
         #preproces
         print("Base handler data length :", len(data))
@@ -201,25 +202,36 @@ class BaseHandler(abc.ABC):
         
         data_list = []
         print("process batches :", data)
-        if self.batch_size == 1:
-            if not explain:
-                func_output = func(data[0])
-            elif explain:
-                data_list, data, targets = data
-                func_output = func(data_list[0], data[0], targets[0])     
-            data_list.append(func_output)
-
-
-        elif isinstance(data, (list,torch.Tensor)):
-            print(f"Process_batches get executed for {len(data)} times")
-            for d in data:
-                func_output = func(d)
-                data_list.append(func_output)
+        # if self.batch_size == 1:
+        #     if not explain:
+        #         func_output = func(data[0])
+        #     elif explain:
+        #         data_list, data, targets = data
+        #         func_output = func(data_list[0], data[0], targets[0])     
+        #     data_list.append(func_output)
         
-        elif explain:
-            #dat, targets = data
-            for tensor_data, datas, targets  in zip(*data):
-                func_output = func(tensor_data, datas, targets)
+        # elif explain:
+        #     #dat, targets = data
+        #     for dat in zip(*data):
+        #         func_output = func(*dat)
+        #         data_list.append(func_output)
+        
+        # elif isinstance(data, (list,torch.Tensor)):
+        # elif not explain:
+        #     print(f"Process_batches get executed for {len(data)} times")
+        #     for d in data:
+        #         func_output = func(*d)
+        #         data_list.append(func_output)
+        if isinstance(data, tuple):
+            print("process batches tuple")
+            for dat in zip(*data):
+                func_output = func(*dat)
+                data_list.append(func_output)
+        elif isinstance(data, (list, torch.Tensor)):
+            print("process batches tensor")
+            for dat in data:
+                
+                func_output = func(dat)
                 data_list.append(func_output)
 
         print("process batches output :", data_list)
