@@ -115,7 +115,8 @@ public class InferenceRequestHandler extends HttpRequestHandlerChain {
                 && "v2".equals(segments[1])
                 && "models".equals(segments[2])
                 && "versions".equals(segments[4])
-                && "infer".equals(segments[6]);
+                && ("infer".equals(segments[6])
+                || "explain".equals(segments[6]));
     }
 
     private void validatePredictionsEndpoint(String[] segments) {
