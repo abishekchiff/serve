@@ -172,7 +172,7 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
             response["explanations"] = output_explain
         return [response]
     
-    def get_insights(self, text):
+    def get_insights(self, input_ids, text, target):
         """
         This function calls the layer integrated gradient to get word importance
         of the input text
@@ -190,25 +190,7 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
         response["importances"] = attributions_sum.tolist()
         response["words"] = all_tokens
         return [response]
-    
-    def handle(self, data, context, explain = False):
-        """
-        Entry point for default handler
-        """
 
-        # It can be used for pre or post processing if needed as additional request
-        # information is available in context
-        self.context = context
-        output_explain  = None
-        #explain from header 
-
-        data,input_text = self.preprocess(data)
-        output = self.inference(data)
-        output_explain = self.explain_handle(context, input_text)
-        output = self.postprocess(output)
-        return output, output_explain
-
-# Captum helper functions
 def construct_input_ref(text, tokenizer, device):
     """
     For a given text, this function creates token id, reference id and
