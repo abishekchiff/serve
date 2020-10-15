@@ -165,9 +165,12 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
 
         return inferences
 
-    def postprocess(self, inference_output):
-        # TODO: Add any needed post-processing of the model predictions here
-        return inference_output
+    def postprocess(self, inference_output, output_explain = None):
+        response = {}
+        response["predictions"] = inference_output
+        if output_explain:
+            response["explanations"] = output_explain
+        return [response]
     
     def get_insights(self, text):
         """
