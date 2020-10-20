@@ -21,9 +21,9 @@ logging.basicConfig(level=kfserving.constants.KFSERVING_LOGLEVEL)
 import io
 import numpy as np
 import base64
-EXPLAINER_URL_FORMAT = "http://{0}/v1/models/{1}:explain"
 import json
 import tornado
+EXPLAINER_URL_FORMAT = "http://{0}/v1/models/{1}:explain"
 
 image_processing = transforms.Compose([
         transforms.ToTensor(),
@@ -49,7 +49,7 @@ class ImageTransformer(kfserving.KFModel):
         logging.info("MODEL NAME %s", name)
         logging.info("PREDICTOR URL %s", self.predictor_host)
         logging.info("EXPLAINER URL %s", self.explainer_host)
-        self.timeout = 4000
+        self.timeout = 100
 
     def preprocess(self, inputs: Dict) -> Dict:
         return {'instances': [image_transform(instance) for instance in inputs['instances']]}

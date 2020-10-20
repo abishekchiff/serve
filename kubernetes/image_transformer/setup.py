@@ -21,7 +21,7 @@ tests_require = [
 ]
 
 setup(
-    name='transformer',
+    name='image_transformer',
     version='0.1.0',
     author_email='dsun20@bloomberg.net',
     license='../../LICENSE.txt',
@@ -29,7 +29,7 @@ setup(
     description='Transformer',
     long_description=open('README.md').read(),
     python_requires='>=3.6',
-    packages=find_packages("transformer"),
+    packages=find_packages("image_transformer"),
     install_requires=[
         "kfserving>=0.2.1",
         "argparse>=1.4.0",
