@@ -14,8 +14,8 @@
 
 import kfserving
 import argparse
-from .image_transformer import ImageTransformer
-
+from image_transformer import ImageTransformer
+from transformer_model_repository import TransformerModelRepository
 DEFAULT_MODEL_NAME = "model"
 
 parser = argparse.ArgumentParser(parents=[kfserving.kfserver.parser])
@@ -27,5 +27,4 @@ args, _ = parser.parse_known_args()
 
 if __name__ == "__main__":
     transformer = ImageTransformer(args.model_name, predictor_host=args.predictor_host)
-    kfserver = kfserving.KFServer()
-    kfserver.start(models=[transformer])
+    kfserving.KFServer(registered_models=TransformerModelRepository(args.predictor_host)).start(models=[transformer])
