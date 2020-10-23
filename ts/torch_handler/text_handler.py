@@ -52,7 +52,7 @@ class TextHandler(BaseHandler, ABC):
             # Backward compatibility
             self.source_vocab = torch.load(source_vocab)
         else:
-            self.source_vocab = torch.load(self.get_source_vocab_path(ctx))
+            self.source_vocab = torch.load(self.get_source_vocab_path(context))
         self.lig = LayerIntegratedGradients(self.model, self.model.embedding)
         self.initialized = True
 
