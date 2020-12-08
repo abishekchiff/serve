@@ -21,6 +21,7 @@ TS_CONFIG_FILE_HTTPS = os.path.join("resources", "config.properties")
 
 POSTMAN_ENV_FILE = os.path.join("postman", "environment.json")
 POSTMAN_INFERENCE_DATA_FILE = os.path.join("postman", "inference_data.json")
+POSTMAN_INFERENCE_DATA_FILE_KF = os.path.join("postman", "kf_inference_data.json")
 POSTMAN_INCRSD_TIMEOUT_INFERENCE_DATA_FILE = os.path.join("postman", "increased_timeout_inference.json")
 
 POSTMAN_COLLECTION_MANAGEMENT = os.path.join("postman", "management_api_test_collection.json")
@@ -91,16 +92,6 @@ def trigger_https_tests():
     cleanup_model_store()
     return EXIT_CODE
 
-
-def trigger_all():
-    exit_code1 = trigger_management_tests()
-    exit_code2 = trigger_inference_tests()
-    exit_code3 = trigger_incr_timeout_inference_tests()
-    exit_code4 = trigger_https_tests()
-    exit_code5 = trigger_management_tests_kf()
-    exit_code6 = trigger_inference_tests_kf()
-    return 1 if any(code != 0 for code in [exit_code1, exit_code2, exit_code3, exit_code4, exit_code5, exit_code6]) else 0
-
 def trigger_management_tests_kf():
     """ Return exit code of newman execution of management collection """
     
@@ -123,11 +114,22 @@ def trigger_inference_tests_kf():
     config_file.close()
 
     ts.start_torchserve(ncs=True, model_store=MODEL_STORE_DIR, config_file="config.properties", log_file=TS_CONSOLE_LOG_FILE)
-    EXIT_CODE = os.system(f"newman run -e {POSTMAN_ENV_FILE} {POSTMAN_COLLECTION_INFERENCE} -d {POSTMAN_INFERENCE_DATA_FILE} -r cli,html --reporter-html-export {ARTIFACTS_INFERENCE_DIR}/{REPORT_FILE} --verbose")
+    EXIT_CODE = os.system(f"newman run -e {POSTMAN_ENV_FILE} {POSTMAN_COLLECTION_INFERENCE_KF} -d {POSTMAN_INFERENCE_DATA_FILE_KF} -r cli,html --reporter-html-export {ARTIFACTS_INFERENCE_DIR}/{REPORT_FILE} --verbose")
     ts.stop_torchserve()
     move_logs(TS_CONSOLE_LOG_FILE, ARTIFACTS_INFERENCE_DIR)
     cleanup_model_store()
     return EXIT_CODE
+
+
+def trigger_all():
+    exit_code1 = trigger_management_tests()
+    exit_code2 = trigger_inference_tests()
+    exit_code3 = trigger_incr_timeout_inference_tests()
+    exit_code4 = trigger_https_tests()
+    exit_code5 = trigger_management_tests_kf()
+    exit_code6 = trigger_inference_tests_kf()
+    return 1 if any(code != 0 for code in [exit_code1, exit_code2, exit_code3, exit_code4, exit_code5, exit_code6]) else 0
+
 
 def test_api(collection):
     os.chdir(TEST_DIR)
