@@ -24,4 +24,4 @@ install_from_src()
 #test_api("all") #"all" > management, inference, increased_timeout_inference, https collections
 test_api("management_kf")
 # Run regression tests
-test_regression()
+#test_regression()
