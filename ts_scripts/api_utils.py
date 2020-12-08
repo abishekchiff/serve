@@ -97,6 +97,19 @@ def trigger_all():
     exit_code4 = trigger_https_tests()
     return 1 if any(code != 0 for code in [exit_code1, exit_code2, exit_code3, exit_code4]) else 0
 
+def trigger_management_tests_kf():
+    """ Return exit code of newman execution of management collection """
+    
+    config_file = open("config.properties", "w")
+    config_file.write("service_envelope=kfserving")
+    config_file.close()
+
+    ts.start_torchserve(ncs=True, model_store=MODEL_STORE_DIR, config_file="config.properties", log_file=TS_CONSOLE_LOG_FILE)
+    EXIT_CODE = os.system(f"newman run -e {POSTMAN_ENV_FILE} {POSTMAN_COLLECTION_MANAGEMENT} -r cli,html --reporter-html-export {ARTIFACTS_MANAGEMENT_DIR}/{REPORT_FILE} --verbose")
+    ts.stop_torchserve()
+    move_logs(TS_CONSOLE_LOG_FILE, ARTIFACTS_MANAGEMENT_DIR)
+    cleanup_model_store()
+    return EXIT_CODE
 
 def test_api(collection):
     os.chdir(TEST_DIR)
@@ -106,6 +119,7 @@ def test_api(collection):
 
     switcher = {
         "management": trigger_management_tests,
+        "management_kf": trigger_management_tests_kf,
         "inference": trigger_inference_tests,
         "increased_timeout_inference": trigger_incr_timeout_inference_tests,
         "https": trigger_https_tests,
