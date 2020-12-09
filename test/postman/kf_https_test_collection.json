@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "09c6e24d-b09c-4ff6-868a-99705499a1ce",
-		"name": "https_test_collection_kf",
+		"name": "kf_https_test_collection",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
