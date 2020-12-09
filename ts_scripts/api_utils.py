@@ -16,6 +16,7 @@ MODEL_STORE_DIR = os.path.join("model_store")
 ### Torchserve
 ARTIFACTS_MANAGEMENT_DIR = os.path.join("artifacts", "management")
 ARTIFACTS_INFERENCE_DIR = os.path.join("artifacts", "inference")
+ARTIFACTS_EXPLANATION_DIR = os.path.join("artifacts", "explanation")
 ARTIFACTS_INCRSD_TIMEOUT_INFERENCE_DIR = os.path.join("artifacts", "increased_timeout_inference")
 ARTIFACTS_HTTPS_DIR = os.path.join("artifacts", "https")
 
@@ -24,11 +25,13 @@ TS_CONFIG_FILE_HTTPS = os.path.join("resources", "config.properties")
 
 POSTMAN_ENV_FILE = os.path.join("postman", "environment.json")
 POSTMAN_INFERENCE_DATA_FILE = os.path.join("postman", "inference_data.json")
+POSTMAN_EXPLANATION_DATA_FILE = os.path.join("postman", "explanation_data.json")
 POSTMAN_INCRSD_TIMEOUT_INFERENCE_DATA_FILE = os.path.join("postman", "increased_timeout_inference.json")
 
 #only one management collection for both kfserving and torchserve
 POSTMAN_COLLECTION_MANAGEMENT = os.path.join("postman", "management_api_test_collection.json")
 POSTMAN_COLLECTION_INFERENCE = os.path.join("postman", "inference_api_test_collection.json")
+POSTMAN_COLLECTION_EXPLANATION = os.path.join("postman", "explanation_api_test_collection.json")
 
 POSTMAN_COLLECTION_HTTPS = os.path.join("postman", "https_test_collection.json")
 
@@ -79,6 +82,17 @@ def trigger_inference_tests():
     EXIT_CODE = os.system(f"newman run -e {POSTMAN_ENV_FILE} {POSTMAN_COLLECTION_INFERENCE} -d {POSTMAN_INFERENCE_DATA_FILE} -r cli,html --reporter-html-export {ARTIFACTS_INFERENCE_DIR}/{REPORT_FILE} --verbose")
     ts.stop_torchserve()
     move_logs(TS_CONSOLE_LOG_FILE, ARTIFACTS_INFERENCE_DIR)
+    cleanup_model_store()
+    return EXIT_CODE
+
+
+def trigger_explanation_tests():
+    """ Return exit code of newman execution of inference collection """
+
+    ts.start_torchserve(ncs=True, model_store=MODEL_STORE_DIR, log_file=TS_CONSOLE_LOG_FILE)
+    EXIT_CODE = os.system(f"newman run -e {POSTMAN_ENV_FILE} {POSTMAN_COLLECTION_EXPLANATION} -d {POSTMAN_EXPLANATION_DATA_FILE} -r cli,html --reporter-html-export {ARTIFACTS_INFERENCE_DIR}/{REPORT_FILE} --verbose")
+    ts.stop_torchserve()
+    move_logs(TS_CONSOLE_LOG_FILE, ARTIFACTS_EXPLANATION_DIR)
     cleanup_model_store()
     return EXIT_CODE
 
