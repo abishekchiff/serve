@@ -172,13 +172,16 @@ def trigger_all():
     exit_code5 = trigger_management_tests_kf()
     exit_code6 = trigger_inference_tests_kf()
     exit_code7 = trigger_https_tests_kf()
-    return 1 if any(code != 0 for code in [exit_code1, exit_code2, exit_code3, exit_code4, exit_code5, exit_code6, exit_code7]) else 0
+    exit_code8 = trigger_explanation_tests()
+    return 1 if any(code != 0 for code in [exit_code1, exit_code2, exit_code3, exit_code4, exit_code5, exit_code6, exit_code7, exit_code8]) else 0
 
 
 def test_api(collection):
     os.chdir(TEST_DIR)
-    ALL_DIRS = [MODEL_STORE_DIR, ARTIFACTS_MANAGEMENT_DIR, ARTIFACTS_INFERENCE_DIR, ARTIFACTS_INCRSD_TIMEOUT_INFERENCE_DIR,
-    ARTIFACTS_HTTPS_DIR, ARTIFACTS_MANAGEMENT_DIR_KF, ARTIFACTS_INFERENCE_DIR_KF, ARTIFACTS_INCRSD_TIMEOUT_INFERENCE_DIR_KF, ARTIFACTS_HTTPS_DIR_KF] 
+    ALL_DIRS = [MODEL_STORE_DIR, ARTIFACTS_MANAGEMENT_DIR, ARTIFACTS_INFERENCE_DIR, ARTIFACTS_EXPLANATION_DIR,
+    ARTIFACTS_INCRSD_TIMEOUT_INFERENCE_DIR, ARTIFACTS_HTTPS_DIR, ARTIFACTS_MANAGEMENT_DIR_KF, ARTIFACTS_INFERENCE_DIR_KF, 
+    ARTIFACTS_INCRSD_TIMEOUT_INFERENCE_DIR_KF, ARTIFACTS_HTTPS_DIR_KF] 
+
     for DIR in ALL_DIRS:
         shutil.rmtree(DIR, True)
         os.makedirs(DIR, exist_ok=True)
@@ -188,6 +191,7 @@ def test_api(collection):
         "management_kf": trigger_management_tests_kf,
         "inference": trigger_inference_tests,
         "inference_kf": trigger_inference_tests_kf,
+        "explanation": trigger_explanation_tests,
         "increased_timeout_inference": trigger_incr_timeout_inference_tests,
         "https": trigger_https_tests,
         "https_kf": trigger_https_tests_kf,

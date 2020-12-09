@@ -57,7 +57,7 @@
 			"response": []
 		},
 		{
-			"name": "Model Zoo - KFServing Explanations Model",
+			"name": "Model Zoo - Explanations Model",
 			"event": [
 				{
 					"listen": "test",
