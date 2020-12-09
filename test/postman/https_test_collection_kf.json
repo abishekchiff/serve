@@ -303,7 +303,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "serve_captum/kubernetes/kfserving/kf_request_json/mnist.json"
+						"src": "../kubernetes/kfserving/kf_request_json/mnist.json"
 					},
 					"options": {
 						"raw": {
@@ -355,7 +355,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "serve_captum/kubernetes/kfserving/kf_request_json/mnist.json"
+						"src": "../kubernetes/kfserving/kf_request_json/mnist.json"
 					},
 					"options": {
 						"raw": {
