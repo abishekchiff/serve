@@ -4,7 +4,7 @@
     "model_name":"mnist",
     "worker":1,
     "synchronous":"true",
-    "file":"../examples/image_classifier/mnist/mnist_ts.json",
+    "file":"../examples/image_classifier/mnist/test_data/0.png",
     "content-type":"application/json",
     "expected":{
         "predictions": [

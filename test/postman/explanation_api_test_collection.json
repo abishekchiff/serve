@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "81a4f41f-6aec-4820-b7cb-e10e921062eb",
-		"name": "explanation_api_test_collection",
+		"name": "explanations_torchserve",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -153,14 +153,14 @@
 					}
 				},
 				"url": {
-					"raw": "{{protocol}}://{{hostname}}:{{pred-port}}/predictions/{{model_name}}",
+					"raw": "{{protocol}}://{{hostname}}:{{pred-port}}/explanation/{{model_name}}",
 					"protocol": "{{protocol}}",
 					"host": [
 						"{{hostname}}"
 					],
 					"port": "{{pred-port}}",
 					"path": [
-						"predictions",
+						"explanation",
 						"{{model_name}}"
 					]
 				}
