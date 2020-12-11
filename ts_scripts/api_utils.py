@@ -88,7 +88,6 @@ def trigger_inference_tests():
 
 def trigger_explanation_tests():
     """ Return exit code of newman execution of inference collection """
-
     ts.start_torchserve(ncs=True, model_store=MODEL_STORE_DIR, log_file=TS_CONSOLE_LOG_FILE)
     EXIT_CODE = os.system(f"newman run -e {POSTMAN_ENV_FILE} {POSTMAN_COLLECTION_EXPLANATION} -d {POSTMAN_EXPLANATION_DATA_FILE} -r cli,html --reporter-html-export {ARTIFACTS_INFERENCE_DIR}/{REPORT_FILE} --verbose")
     ts.stop_torchserve()
@@ -137,6 +136,7 @@ def trigger_management_tests_kf():
     ts.stop_torchserve()
     move_logs(TS_CONSOLE_LOG_FILE, ARTIFACTS_MANAGEMENT_DIR_KF)
     cleanup_model_store()
+    os.remove("config.properties")
     return EXIT_CODE
 
 def trigger_inference_tests_kf():
@@ -151,6 +151,7 @@ def trigger_inference_tests_kf():
     ts.stop_torchserve()
     move_logs(TS_CONSOLE_LOG_FILE, ARTIFACTS_INFERENCE_DIR_KF)
     cleanup_model_store()
+    os.remove("config.properties")
     return EXIT_CODE
 
 
