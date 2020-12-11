@@ -47,7 +47,7 @@ TS_CONFIG_FILE_HTTPS_KF = os.path.join("resources", "config_kf.properties")
 POSTMAN_INFERENCE_DATA_FILE_KF = os.path.join("postman", "kf_inference_data.json")
 POSTMAN_INCRSD_TIMEOUT_INFERENCE_DATA_FILE_KF = os.path.join("postman", "increased_timeout_inference.json")
 
-POSTMAN_COLLECTION_INFERENCE_KF = os.path.join("postman", "kf_inference_api_test_collection.json")
+POSTMAN_COLLECTION_INFERENCE_KF = os.path.join("postman", "kf_api_test_collection.json")
 
 POSTMAN_COLLECTION_HTTPS_KF = os.path.join("postman", "kf_https_test_collection.json")
 
