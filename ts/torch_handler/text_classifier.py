@@ -44,6 +44,7 @@ class TextClassifier(TextHandler):
         # Processing only the first input, not handling batch inference
 
         line = data[0]
+        
         text = line.get("data") or line.get("body")
         if isinstance(text, (bytes, bytearray)):
             text = text.decode('utf-8')

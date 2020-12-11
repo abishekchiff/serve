@@ -35,7 +35,15 @@ class VisionHandler(BaseHandler, ABC):
         for row in data:
             # Compat layer: normally the envelope should just return the data
             # directly, but older versions of Torchserve didn't have envelope.
+            # if "body" in row:
+            #     image = row.get("body")
+            #     if "data" in image:
+            #         image = image.get("data")
+            # else :
+                
             image = row.get("data") or row.get("body")
+            if "data" in image:
+                image = image.get("data")
             if isinstance(image, str):
                 # if the image is a string of bytesarray.
                 image = base64.b64decode(image)
