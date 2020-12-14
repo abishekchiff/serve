@@ -85,6 +85,13 @@ def benchmark(test_plan, url, gpus, exec_env, concurrency, requests, batch_size,
     click.secho(f"\n\nConfigured execution parameters are:", fg='green')
     click.secho(f"{execution_params}", fg="blue")
 
+    if test_plan == 'kfserving':
+        kf_start_local()
+        # kf_check_health()
+        kf_run_benchmark()
+        generate_report()
+        return
+
     # Setup execution env
     if execution_params['exec_env'] == 'local':
         click.secho("\n\nPreparing local execution...", fg='green')
@@ -124,6 +131,15 @@ def run_benchmark():
     execute(ab_cmd, wait=True)
 
     unregister_model()
+    stop_torchserve()
+
+def kf_run_benchmark():
+    click.secho("\n\nExecuting Apache Bench tests ...", fg='green')
+    click.secho("*Executing inference performance test...", fg='green')
+    ab_cmd = f"ab -c {execution_params['concurrency']}  -n {execution_params['requests']} -k -p {TMP_DIR}/benchmark/input -T " \
+             f"{execution_params['content_type']} http://127.0.0.1:8085/v1/models/mnist:predict > {result_file}"
+    execute(ab_cmd, wait=True)
+
     stop_torchserve()
 
 
@@ -169,6 +185,29 @@ def local_torserve_start():
     execute(f"torchserve --start --model-store {TMP_DIR}/model_store "
             f"--ts-config {TMP_DIR}/benchmark/conf/config.properties > {TMP_DIR}/benchmark/logs/model_metrics.log")
     time.sleep(3)
+
+def kf_start_local():
+    click.secho("*Terminating any existing Torchserve instance ...", fg='green')
+    execute("torchserve --stop", wait=True)
+    click.secho("*Setting up model store...", fg='green')
+    kf_deps()
+    click.secho("*Starting local Torchserve instance...", fg='green')
+    execute(f"torchserve --start --model-store {TMP_DIR}/model_store --models mnist=mnist.mar --ncs "
+            f"--ts-config {TMP_DIR}/benchmark/conf/config.properties > {TMP_DIR}/benchmark/logs/model_metrics.log")
+    time.sleep(30)
+
+def kf_deps():
+    store_path = os.path.join(TMP_DIR, 'model_store/')
+    shutil.rmtree(store_path, ignore_errors=True)
+    os.makedirs(store_path, exist_ok=True)
+    input = execution_params['input']
+    shutil.rmtree(os.path.join(TMP_DIR, "benchmark"), ignore_errors=True)
+    os.makedirs(os.path.join(TMP_DIR, "benchmark/conf"), exist_ok=True)
+    os.makedirs(os.path.join(TMP_DIR, "benchmark/logs"), exist_ok=True)
+    shutil.copy('support_files/config.properties', os.path.join(TMP_DIR, 'benchmark/conf/'))
+    shutil.copy('support_files/mnist.mar', os.path.join(TMP_DIR, 'model_store'))
+    shutil.copyfile(input, os.path.join(TMP_DIR, 'benchmark/input'))
+
 
 
 def docker_torchserve_start():
@@ -270,6 +309,7 @@ def generate_csv_output():
     artifacts = {}
     with open(f'{TMP_DIR}/benchmark/result.txt') as f:
         data = f.readlines()
+    print(data)
     artifacts['Benchmark'] = "AB"
     artifacts['Model'] = execution_params['url']
     artifacts['Concurrency'] = execution_params['concurrency']
@@ -422,6 +462,17 @@ def resnet152_batch_docker():
     execution_params['batch_size'] = 4
     execution_params['exec_env'] = 'docker'
 
+def kfserving():
+    execution_params['url'] = 'https://torchserve.pytorch.org/mar_files/mnist.mar'
+    execution_params['requests'] = 100
+    execution_params['input'] = 'support_files/mnist.json'
+    execution_params['content_type'] = 'application/json'
+
+def mnist():
+    execution_params['url'] = 'https://torchserve.pytorch.org/mar_files/mnist.mar'
+    execution_params['requests'] = 100
+    execution_params['input'] = 'support_files/0.png'
+
 
 def custom():
     pass
@@ -433,6 +484,8 @@ update_plan_params = {
     "vgg11_10000r_100c": vgg11_10000r_100c,
     "resnet152_batch": resnet152_batch,
     "resnet152_batch_docker": resnet152_batch_docker,
+    "kfserving": kfserving,
+    "mnist": mnist,
     "custom": custom
 }
 
